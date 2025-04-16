@@ -81,7 +81,7 @@ export async function fetchCandlesFromMetaapi({
       "EURUSD",
       interval,
       new Date(),
-      100,
+      limit,
     )
 
     // Convert interval to timeframe format expected by MetaAPI
