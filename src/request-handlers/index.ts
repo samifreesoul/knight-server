@@ -5,9 +5,9 @@
  * Import handlers from this file instead of directly from their respective files.
  */
 
-export { handleHistoricalData } from "./historicalDataHandler";
-export { handleFinnhubHistoricalData } from "./finnhubHistoricalDataHandler";
-export { handleMetaApiHistoricalData } from "./metaapi-historical-data";
+export { handleHistoricalData } from "./historicalDataHandler"
+export { handleFinnhubHistoricalData } from "./finnhubHistoricalDataHandler"
+export { handleMetaApiHistoricalData } from "./metaapi-historical-data"
 
 // Add more handler exports here as they are created
 // Example: export { handleSomeOtherEndpoint } from './someOtherHandler';

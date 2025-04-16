@@ -2,69 +2,69 @@
  * Fetches quote data using Twelve Data API
  */
 
-const TWELVE_DATA_API_KEY = "b6080bb2210a44a4ae9062741f61d433";
-const TWELVE_DATA_BASE_URL = "https://api.twelvedata.com";
+const TWELVE_DATA_API_KEY = "b6080bb2210a44a4ae9062741f61d433"
+const TWELVE_DATA_BASE_URL = "https://api.twelvedata.com"
 
 interface TwelveDataQuote {
-  symbol: string;
-  name: string;
-  exchange: string;
-  datetime: string;
-  open: string;
-  high: string;
-  low: string;
-  close: string;
-  volume: string;
-  previous_close: string;
-  change: string;
-  percent_change: string;
-  average_volume: string;
-  is_market_open: boolean;
+  symbol: string
+  name: string
+  exchange: string
+  datetime: string
+  open: string
+  high: string
+  low: string
+  close: string
+  volume: string
+  previous_close: string
+  change: string
+  percent_change: string
+  average_volume: string
+  is_market_open: boolean
   fifty_two_week: {
-    low: string;
-    high: string;
-    low_change: string;
-    high_change: string;
-    low_change_percent: string;
-    high_change_percent: string;
-    range: string;
-  };
+    low: string
+    high: string
+    low_change: string
+    high_change: string
+    low_change_percent: string
+    high_change_percent: string
+    range: string
+  }
 }
 
 interface TwelveDataResponse {
-  status?: string;
-  message?: string;
-  symbol?: string;
-  exchange?: string;
-  datetime?: string;
-  open?: string;
-  high?: string;
-  low?: string;
-  close?: string;
-  volume?: string;
-  previous_close?: string;
-  change?: string;
-  percent_change?: string;
-  average_volume?: string;
-  is_market_open?: boolean;
+  status?: string
+  message?: string
+  symbol?: string
+  exchange?: string
+  datetime?: string
+  open?: string
+  high?: string
+  low?: string
+  close?: string
+  volume?: string
+  previous_close?: string
+  change?: string
+  percent_change?: string
+  average_volume?: string
+  is_market_open?: boolean
   fifty_two_week?: {
-    low: string;
-    high: string;
-    low_change: string;
-    high_change: string;
-    low_change_percent: string;
-    high_change_percent: string;
-    range: string;
-  };
+    low: string
+    high: string
+    low_change: string
+    high_change: string
+    low_change_percent: string
+    high_change_percent: string
+    range: string
+  }
 }
 
 type GenerateUrlParams = {
-  symbol?: string;
-  interval?: string;
-  startDate?: string;
-  endDate?: string;
-  limit?: number;
-};
+  symbol?: string
+  interval?: string
+  startDate?: string
+  endDate?: string
+  limit?: number
+}
 
 const generateUrl = ({
   symbol = "BABA",
@@ -83,10 +83,10 @@ const generateUrl = ({
     start_date: startDate,
     end_date: endDate,
     apikey: TWELVE_DATA_API_KEY,
-  });
+  })
 
-  return `${TWELVE_DATA_BASE_URL}/time_series?${params.toString()}`;
-};
+  return `${TWELVE_DATA_BASE_URL}/time_series?${params.toString()}`
+}
 
 export async function fetchCandles({
   symbol,
@@ -95,15 +95,15 @@ export async function fetchCandles({
   endDate,
   limit,
 }: {
-  symbol: string;
-  interval: string;
-  startDate?: string;
-  endDate?: string;
-  limit?: number;
+  symbol: string
+  interval: string
+  startDate?: string
+  endDate?: string
+  limit?: number
 }) {
   try {
     if (!symbol) {
-      throw new Error("Symbol is required");
+      throw new Error("Symbol is required")
     }
 
     const url = generateUrl({
@@ -112,24 +112,24 @@ export async function fetchCandles({
       startDate,
       endDate,
       limit,
-    });
+    })
 
-    console.info("Fetching from Twelve Data URL:", url);
+    console.info("Fetching from Twelve Data URL:", url)
 
-    const response = await fetch(url);
+    const response = await fetch(url)
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Error response body:", errorText);
+      const errorText = await response.text()
+      console.error("Error response body:", errorText)
       throw new Error(
-        `Failed to fetch quote data: ${response.status} ${response.statusText} - ${errorText}`
-      );
+        `Failed to fetch quote data: ${response.status} ${response.statusText} - ${errorText}`,
+      )
     }
 
-    const data = (await response.json()) as any;
+    const data = (await response.json()) as any
 
     // Check if the API returned an error
     if (data.status === "error") {
-      throw new Error(`Twelve Data API error: ${data.message}`);
+      throw new Error(`Twelve Data API error: ${data.message}`)
     }
 
     return {
@@ -142,9 +142,9 @@ export async function fetchCandles({
         l: parseFloat(val.low),
         // v: parseFloat(val.volume),
       })),
-    };
+    }
   } catch (error) {
-    console.error("Error fetching data from Twelve Data:", error);
-    throw error;
+    console.error("Error fetching data from Twelve Data:", error)
+    throw error
   }
 }

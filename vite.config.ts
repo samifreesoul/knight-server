@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
-import { VitePluginNode } from "vite-plugin-node";
+import { defineConfig } from "vite"
+import { VitePluginNode } from "vite-plugin-node"
 
 export default defineConfig({
   server: {
@@ -12,4 +12,4 @@ export default defineConfig({
       exportName: "app",
     }),
   ],
-});
+})
