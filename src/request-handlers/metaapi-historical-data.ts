@@ -12,7 +12,7 @@ export const handleMetaApiHistoricalData = async (
 ) => {
   try {
     const { symbol } = req.params as MetaApiHistoricalDataParams
-    const { interval, startTime, endTime, limit } =
+    const { interval, startTime, limit } =
       req.query as MetaApiHistoricalDataQuery
 
     if (!symbol) {
@@ -23,15 +23,31 @@ export const handleMetaApiHistoricalData = async (
       return res.status(400).json({ error: "'interval' parameter is required" })
     }
 
-    const data = await fetchCandlesFromMetaapi({
+    console.log(
+      `Received request for ${symbol} with interval ${interval}, startTime: ${startTime}`,
+    )
+
+    const candlesData = await fetchCandlesFromMetaapi({
       symbol,
       interval,
       startTime,
-      endTime,
       limit: limit ? parseInt(limit) : undefined,
     })
 
-    return res.json(data)
+    // Include important debugging info in the response
+    console.log(
+      `Responding with ${candlesData.values.length} candles for ${symbol}`,
+    )
+
+    return res.json({
+      ...candlesData,
+      requestParams: {
+        symbol,
+        interval,
+        startTime,
+        limit,
+      },
+    })
   } catch (error) {
     console.error("Error fetching MetaAPI historical data:", error)
     return res.status(500).json({

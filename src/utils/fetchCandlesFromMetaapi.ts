@@ -40,19 +40,27 @@ interface MetaApiHistoricalData {
     c: number // Close price
     v?: number // Volume (optional)
   }>
+  // Added debug information
+  debug?: {
+    timezone: string
+    candleClosingTimes: Array<{
+      isoString: string
+      localTime: string
+      utcTime: string
+      timestamp: number
+    }>
+  }
 }
 
 export async function fetchCandlesFromMetaapi({
   symbol,
   interval,
   startTime,
-  endTime,
   limit,
 }: {
   symbol: string
   interval: MetaApiInterval
   startTime?: string
-  endTime?: string
   limit?: number
 }): Promise<MetaApiHistoricalData> {
   try {
@@ -64,7 +72,11 @@ export async function fetchCandlesFromMetaapi({
     const from = startTime
       ? new Date(startTime)
       : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Default 7 days ago
-    const to = endTime ? new Date(endTime) : new Date() // Default to now
+    // const to = endTime ? new Date(endTime) : new Date() // Default to now
+
+    console.log(
+      `Fetching candles for ${symbol} from ${from.toISOString()}, interval: ${interval}`,
+    )
 
     // Get the MetaTrader account
     const account =
@@ -77,10 +89,11 @@ export async function fetchCandlesFromMetaapi({
     // Wait until synchronized
     await connection.waitSynchronized()
 
+    // Use symbol parameter instead of hardcoded EURUSD and use the 'to' date
     const candles = await account.getHistoricalCandles(
-      "EURUSD",
+      symbol,
       interval,
-      new Date(),
+      from,
       limit,
     )
 
@@ -88,11 +101,42 @@ export async function fetchCandlesFromMetaapi({
     console.info(
       `Retrieved ${
         Array.isArray(candles) ? candles.length : 0
-      } candles from MetaAPI`,
+      } candles from MetaAPI for ${symbol}`,
     )
 
     // Make sure candles is an array
     const candlesArray = Array.isArray(candles) ? candles : []
+
+    // Create debug information for candle closing times
+    const candleClosingTimes = candlesArray.map((candle: MetaApiCandle) => ({
+      isoString: candle.time.toISOString(),
+      localTime: candle.time.toString(),
+      utcTime: new Date(candle.time).toUTCString(),
+      timestamp: candle.time.getTime(),
+    }))
+
+    // Log a sample of candle times to help diagnose timezone issues
+    console.log(
+      "Sample of candle closing times (last 5):",
+      candleClosingTimes.slice(-5).map((time) => ({
+        isoString: time.isoString,
+        localTime: time.localTime,
+        utcTime: time.utcTime,
+      })),
+    )
+
+    if (interval === "1d") {
+      // console.log(
+      //   "DAILY CANDLES DETAILS:",
+      //   candlesArray.slice(-2).map((candle: MetaApiCandle) => ({
+      //     date: candle.time.toISOString(),
+      //     time: candle.time.toTimeString(),
+      //     open: candle.open,
+      //     close: candle.close,
+      //     timeframe: candle.timeframe,
+      //   })),
+      // )
+    }
 
     // Transform the response to match the expected format
     const values = candlesArray.map((candle: MetaApiCandle) => ({
@@ -107,6 +151,16 @@ export async function fetchCandlesFromMetaapi({
     // Sort by timestamp
     values.sort((a: { x: number }, b: { x: number }) => a.x - b.x)
 
+    console.log(
+      "Last few candles:",
+      values[values.length - 1],
+      // values.slice(-1).map((val) => ({
+      //   ...val,
+      //   date: new Date(val.x).toISOString(),
+      //   localTime: new Date(val.x).toString(),
+      // })),
+    )
+
     // Limit the number of results if specified (if not already limited by the API call)
     const limitedValues =
       limit && limit > 0 && values.length > limit
@@ -116,6 +170,10 @@ export async function fetchCandlesFromMetaapi({
     return {
       symbol,
       values: limitedValues,
+      debug: {
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        candleClosingTimes: candleClosingTimes.slice(-10), // Include last 10 candles' time information
+      },
     }
   } catch (error) {
     console.error("Error fetching data from MetaAPI:", error)
